@@ -1,4 +1,4 @@
-package br.com.itaus.pagamento.api;
+package com.itaus.pagamento.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
