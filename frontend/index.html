@@ -1,0 +1,227 @@
+<html ng-app="itausApp">
+    <head>    
+            <link rel="stylesheet" href="lib/bootstrap.min.css"/>
+            <script src="lib/jquery.min.js"></script>
+            <script src="lib/bootstrap.min.js"></script>
+            <script src="lib/angular.js"></script>
+            <script>
+                angular.module('itausApp', []);
+                angular.module('itausApp').controller('itausController', function($scope, $http){
+                    $scope.produtos = [];  
+                    $scope.parcelas = 1;
+                    $scope.produto = {};
+                    $scope.valor = 0.0;
+                    $scope.success = false;
+                    $scope.error = false;
+                    $scope.pagamentos = [];
+                    var api = 'http://localhost:8080/api/';
+
+                    $scope.calcular= function(){
+                        if($scope.parcelas < 1){
+                            $scope.parcelas = 1;
+                            return;
+                        }
+                        if($scope.parcelas > $scope.produto.parcelas){
+                            $scope.parcelas = $scope.produto.parcelas;
+                        }
+                        $scope.valor = $scope.parcelas * $scope.produto.valor;
+                    }
+
+                    $scope.historico = function(produto){
+                        console.log(produto);
+                        $http.get(api + 'pagamento/' + produto.id).then(function(response){
+                            $scope.pagamentos = response.data;
+                            $scope.produto = produto;
+                            $('#modalHistorico').modal('show');
+                        })
+                    }
+
+                    $scope.abrirModalPagar = function(produto){ 
+                        $scope.parcelas = produto.parcelas;
+                        $scope.produto = produto;
+                        $scope.valor = $scope.parcelas * produto.valor;
+                        $('#modalPagamento').modal('show');
+
+                    }
+
+                    $scope.pagar = function(){
+                        $http({
+                            url:api + 'pagamento/salvar',
+                            method:'POST',
+                            data:{
+                                produtoId:$scope.produto.id,
+                                parcelas:$scope.parcelas
+                            }
+                        }).then(function(response){
+                            $scope.message = true;
+                            $scope.error = false;
+                            $('#modalPagamento').modal('hide');
+                            consultaProdutos();
+                        }, function(error){
+                            $scope.error = true;
+                            $scope.message = false;
+                            $('#modalPagamento').modal('hide');
+                        });
+
+                    }
+
+                    var consultaProdutos = function(){
+                        $http.get(api + 'produto/todos').then(function(response){
+                            $scope.produtos = response.data;   
+                        });
+                    }
+
+                    consultaProdutos();
+                })
+            
+            </script>
+            <style>
+                .jumbotron{
+                    margin: 0 auto;
+                    width: 600px!important;
+                    background-color: white;
+                    height: 100%;
+                }
+
+                table{
+
+                    padding: 20px;
+                    font-size: 12px;
+                }
+
+                h3{
+                    text-align: center;
+                    font-weight: bold;
+                    margin-bottom: 40px;
+                }
+
+
+                body{
+                    background-color: orange;
+                }
+            </style>
+
+    </head>
+    <body ng-controller="itausController">
+
+        <div class = "row">
+            <div class = "col-md-12">
+                    <div class = "jumbotron">
+                        <h3>Módulo de pagamento</h3>
+                        <div ng-show="message" class = "alert alert-success">            
+                            Parcelas pagas com sucesso !
+                        </div>
+                        <div ng-show="error" class = "alert alert-danger">            
+                                Servico indisponivel
+                        </div>
+                            
+                            <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Produto</th>
+                                            <th>Valor</th>
+                                            <th>Parcelas</th>
+                                            <th>Tipo Pagamento</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                        
+                                    </thead>
+                                        <tbody>
+                                            <tr ng-repeat="produto in produtos">
+                                                <td>{{produto.nome}}</td>
+                                                <td>{{produto.valor}}</td>
+                                                <td>{{produto.parcelas}}</td>
+                                                <td>{{produto.tipoPagamento}}</td>
+                                                <td>
+                                                    <button ng-if="produto.parcelas > 0" ng-click="abrirModalPagar(produto)" type="button" class="btn btn-sm btn-primary">
+                                                        Pagar
+                                                    </button>
+                                                    <button ng-if="produto.parcelas <= 0" type="button" class="btn btn-sm btn-default">
+                                                        Pagar
+                                                    </button>
+
+                                                    <button ng-click="historico(produto)" type="button" class="btn btn-sm btn-defaut">
+                                                        Historico
+                                                    </button>
+    
+
+
+
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                            </table>        
+                    </div>
+            </div>
+        </div> 
+
+        <div id = "modalPagamento" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <h4 class="modal-title">Novo pagamento</h4>
+                    </div>
+                    <div class="modal-body">
+                      <form>
+                            <div class="form-group">
+                                    <label for="parcelas">Quantidade de parcelas</label>
+                                    <input ng-keyup="calcular()" ng-change="calcular()" ng-model="parcelas" type="number" class="form-control" id="parcelas" placeholder="Quantidade">
+                            </div>
+                            <h5><strong>Valor total a pagar:</strong> R$ {{valor}}</h5>
+                      </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button ng-click="pagar()" type="button" class="btn btn-primary">Finalizar Pagamento</button>
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    </div>
+                  </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+              </div><!-- /.modal -->
+
+              <div id = "modalHistorico" class="modal fade" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <h4 class="modal-title">Historico de Pagamento</h4>
+                        </div>
+                        <div class="modal-body">
+                        
+
+
+                                <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Produto</th>
+                                                <th>Parcelas</th>
+                                                <th>Valor</th>
+                                                <th>Data</th>
+                                            </tr>
+                                            
+                                        </thead>
+                                            <tbody>
+                                                <tr ng-repeat="pagamento in pagamentos">
+                                                        <td>{{pagamento.produto.nome}}</td>
+                                                        <td>{{$index + 1}}</td>
+                                                        <td>{{pagamento.valor}}</td>
+                                                        <td>{{pagamento.data}}</td>
+                                                </tr>
+                                            </tbody>
+                                </table>       
+
+
+
+
+
+                        </div>
+                        <div class="modal-footer">
+                           <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                        </div>
+                      </div><!-- /.modal-content -->
+                    </div><!-- /.modal-dialog -->
+                  </div><!-- /.modal -->
+
+
+    </body>
+</html>
