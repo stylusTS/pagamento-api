@@ -7,8 +7,15 @@ O projeto esta dividido em duas pastas frontEnd e backEnd sendo que na pasta fro
 localizar o arquivo index.html que o levará a pagina da aplicação, note que ela carrega apenas 
 uma tabela sem valores, para subir o servidor de aplicação contido na pasta backEnd faça:
 
-Dentro da pasta ...pagamento\backend\target
+Após baixar o projeto voce pode compilar com o Maven:
 
+Dentro da pasta ...pagamento\backend
+Execute o comando no cmd:
+mvn clean install
+
+<b>IMPORTANTE:</b>Garantir tem o Maven na maquina.
+
+Dentro da pasta ...pagamento\backend\target
 Execute o comando abaixo no cmd:
 java -jar pagamento-0.0.1-SNAPSHOT.jar
 
@@ -27,7 +34,7 @@ insert into produto (nome, valor, parcelas, tipo_pagamento) values ("Cartao corp
 insert into produto (nome, valor, parcelas, tipo_pagamento) values ("Cartao cidadao", 44.89, 1, "PAGAMENTO_BOLETO");
 insert into produto (nome, valor, parcelas, tipo_pagamento) values ("Cartao Pre pago", 78.50, 10, "PAGAMENTO_A_PRAZO");
 
-<b>Importante:</b> A aplicação esta configurada para criar um tabela nova a cada nova execução então sempre que executar é preciso popular o banco novamente executando as querys.
+<b>Importante:</b> A aplicação esta configurada para criar uma tabela nova a cada execução então sempre que executar é preciso popular o banco novamente executando as querys.
 
 Tudo pronto ! agora é só abrir o arquivo index.html com o seu navegador e testar o serviço.
 
